@@ -1,0 +1,65 @@
+<% include ../header %>
+
+    <div class="container">
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>TAG</th>
+                        <th>Produto</th>
+                        <th>Quantidade</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(var i=0; i<produtos.length; i++) {%>
+                        <tr>
+                            <td>
+                                <%= produtos[i].tagProduto %>
+                            </td>
+                            <td>
+                                <%= produtos[i].nomeProduto %>
+                            </td>
+                            <td>
+                                <%= produtos[i].qtdProduto %>
+                            </td>
+                            <td>
+                                <a href="/entrada?tagProduto=<%= produtos[i].tagProduto %>" class="btn btn-default btn-circle">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                </a>
+                                <a href="/saida?tagProduto=<%= produtos[i].tagProduto %>" class="btn btn-default btn-circle">
+                                    <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                                </a>
+                                <a href="/excluir?tagProduto=<%= produtos[i].tagProduto %>" class="btn btn-danger btn-circle">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <hr>
+
+        <form action="/salvar" method="POST" class="form-group">
+            <div class="form-inline">
+                <div class="input-group col-md-3">
+                    <input type="text" class="form-control" id="txtTag" placeholder="TAG do Produto" name="tagProduto">
+                </div>
+                <div class="input-group col-md-3">
+                    <input type="text" class="form-control" id="txtNome" placeholder="Nome do Produto" name="nomeProduto">
+                </div>
+                <div class="input-group col-md-3">
+                    <input type="text" class="form-control" id="txtQtd" placeholder="Qtd. em Estoque" name="qtdProduto">
+                </div>
+                <div class="input-group col-md-2">
+                    <button type="submit" class="btn btn-success form-control">Cadastrar</button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+    <% include ../footer %>

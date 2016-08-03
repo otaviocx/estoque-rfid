@@ -1,0 +1,16 @@
+.table th,
+.table td {
+   text-align: center;   
+}
+
+/*body{margin:40px;}*/
+
+.btn-circle {
+  width: 28px;
+  height: 28px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 9px;
+  line-height: 1.428571429;
+  border-radius: 50%;
+}

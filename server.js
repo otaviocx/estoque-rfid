@@ -15,7 +15,18 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => {
-    //res.sendFile(__dirname + '/index.html')
+    res.render('home')
+})
+
+app.get('/listagem', (req, res) => {
+    db.collection(collectionName).find().toArray((err, result) => {
+        var content = {
+            produtos: []
+        }
+
+        if (result) content.produtos = result
+        res.render('lista', content)
+    })
 })
 
 /**
@@ -28,7 +39,7 @@ app.get('/cadastro', (req, res) => {
         }
 
         if (result) content.produtos = result
-        res.render('principal', content)
+        res.render('cadastro', content)
     })
 })
 
@@ -89,12 +100,20 @@ app.get('/excluir', (req, res) => {
     })
 })
 
-MongoClient.connect('mongodb://admin:mongo.oobj@127.0.0.1:27017/controle-de-estoque', (err, database) => {
-    if (err) console.log(err)
-    else {
-        db = database
-        app.listen(3000, () => {
-            console.log('listening on 3000')
-        })
+var dbCredenciais = 'admin:mongo.oobj@';
+var dbUrl = dbCredenciais + '127.0.0.1:27017/controle-de-estoque';
+//var dbUrl = '127.0.0.1:27017/estoque';
+
+MongoClient.connect('mongodb://' + dbUrl, (err, database) => {
+    if (err) {
+        // se não conectar escreve o erro e finaliza
+        console.log(err)
+        process.exit()
     }
+    
+    // conexão bem sucedida com o banco
+    db = database
+    app.listen(3000, () => {
+        console.log('listening on 3000')
+    })
 })

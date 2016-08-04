@@ -1,0 +1,35 @@
+<% include ../header %>
+
+    <div class="container">
+        <h1>Bem-vindo ao Controle de Estoque Doméstico</h1>
+        
+        <hr>
+        
+        <p class="lead">
+            Essa aplicação consiste em <strong>gerenciar e informar</strong> quando um determinado 
+            produto da sua casa será completamente usado. Assim você nunca vai se <strong>esquecer</strong> de comprar
+            na hora certa. Simples né?
+        </p>
+        
+        <p class="lead">
+            Mas vou te contar como isso aqui funciona <strong>internamente</strong>. Suponho que você já deve ter
+            noção do que é uma <strong>TAG de RFID</strong>. Se ainda não sabe o que é, clique
+            <a href="https://pt.wikipedia.org/wiki/Identifica%C3%A7%C3%A3o_por_radiofrequ%C3%AAncia" target="_blank">aqui</a>
+            e descubra.
+        </p>
+        
+        <p class="lead">
+            Basicamente, tudo isso funciona graças ao dispositivo de <strong>radiofrequência</strong> que você tem
+            no seu cartão de SITPASS ou outro. Um sensor do arduino que consegue ler a TAG do RFID e envia essa TAG para
+            esta aplicação a mesma. Essa aplicação tem o cadastro da TAG e sua categoria, e assim pode inferir qual
+            foi a <strong>data de entrada</strong> do produto. Desta forma sabendo da <strong>quantidade</strong> daquele
+            produto e da <strong>data de saída</strong> do mesmo, podemos inferir o <strong>espaço de tempo necessário</strong>
+            para o consumo futuro desse mesmo produto. Entendeu a jogada?
+        </p>
+        
+        <p class="lead">
+            Eu trabalho com dados do <strong>passado</strong> para prever o <strong>futuro</strong>.
+        </p>
+    </div>
+
+<% include ../footer %>

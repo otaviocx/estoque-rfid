@@ -59,21 +59,26 @@ app.get('/listagem', (req, res) => {
  * Rota que cadastra uma nova TAG
  */
 app.get('/cadastro', (req, res) => {
-    database.collection(collectionProdutos).find().toArray((err, result) => {
-        var content = {
-            produtos: []
-        }
+    database.collection(collectionProdutos).group(
+        ['tagProduto', 'nomeProduto'], // agrupando por tagProduto e nomeProduto
+        {}, // nenhum filtro visto que quero todos os produtos do banco
+        { "quantidadeProduto": 0 }, // quero esse campo para todos os resultados retornados
+        "function (obj, prev) { prev.quantidadeProduto++; }", // incrementando o campo falso
+        function (err, results) {
+            var content = {
+                produtos: []
+            }
 
-        if (result) content.produtos = result
-        res.render('cadastro', content)
-    })
+            if (results && results.length > 0) content.produtos = results
+            res.render('cadastro', content)
+        })
 })
 
 /**
  * recalcula a durabilidade de um produto pela sua tag
  * considerando que uma nova inserção foi realizada
  */
-function recalcularDurabilidade(produto) {
+function recalcularDurabilidadeEntrada(produto) {
     // se o produto existir e tiver durabilidade significa que podemos calcular
     // a data que este produto acabará no estoque
     if (produto && produto.durabilidade) {
@@ -97,8 +102,14 @@ function recalcularDurabilidade(produto) {
  */
 app.get('/entrada', (req, res) => {
 
-    var tagProduto = req.query.tagProduto
-    var dataEntrada = new Date()
+    const tagProduto = req.query.tagProduto
+    const dataAtual = new Date();
+    const dataDeEntrada = dataAtual.getDay() + '/' +
+        Number(dataAtual.getMonth() + 1) + '/' +
+        dataAtual.getFullYear() + ' ' +
+        dataAtual.getHours() + ':' +
+        dataAtual.getMinutes() + ':' +
+        dataAtual.getSeconds()
 
     database.collection(collectionProdutos).findOne({ 'tagProduto': tagProduto }, (err, produto) => {
         // se conseguir encontrar o documento no banco aumenta sua quantidade e salva
@@ -107,13 +118,17 @@ app.get('/entrada', (req, res) => {
             var novoProduto = {}
             novoProduto.nomeProduto = produto ? produto.nomeProduto : ''
             novoProduto.tagProduto = tagProduto
-            novoProduto.dataEntrada = new Date()
+            novoProduto.dataEntrada = dataDeEntrada
             novoProduto.dataSaida = null
-            novoProduto.durabilidade = produto ? recalcularDurabilidade(tagProduto) : null
+            novoProduto.durabilidade = produto ? recalcularDurabilidadeEntrada(tagProduto) : null
 
-            database.collection(collectionProdutos).save(produto, (err, result) => {
-                if (err) return console.log(err)
-                res.redirect('/cadastro')
+            database.collection(collectionProdutos).save(novoProduto, (err, result) => {
+                if (err) {
+                    console.log(err)
+                    res.json({ success: false })
+                } else {
+                    res.json({ success: true })
+                }
             })
         }
     })
@@ -132,6 +147,26 @@ app.get('/saida', (req, res) => {
                 res.redirect('/cadastro')
             })
         }
+    })
+})
+
+/**
+ * Rota que persiste no banco de dados um novo produto
+ * com sua tag e nome, atualizando todos os demais produtos
+ */
+app.post('/salvarNome', (req, res) => {
+    const produto = req.body
+
+    if (!produto || !produto.tagProduto || !produto.nomeProduto || produto.nomeProduto === '') {
+        res.json({ success: false })
+        return
+    }
+
+    database.collection(collectionProdutos).save(req.body, (err, result) => {
+        if (err) return console.log(err)
+
+        console.log('produto persistido no banco!')
+        res.redirect('/cadastro')
     })
 })
 
@@ -167,17 +202,17 @@ app.get('/excluir', (req, res) => {
 app.get('/limparBanco', (req, res) => {
     var isCollectionProdutosEsvaziada = false
     var isCollectionDurabilidadeEsvaziada = false
-    
+
     database.collection(collectionProdutos).deleteMany({}, (err, result) => {
         if (err) return console.log(err)
         else isCollectionProdutosEsvaziada = true
     })
-    
+
     database.collection(collectionDurabilidade).deleteMany({}, (err, result) => {
         if (err) return console.log(err)
         else isCollectionDurabilidadeEsvaziada = true
     })
-    
+
     res.json({ success: isCollectionProdutosEsvaziada && isCollectionDurabilidadeEsvaziada });
 })
 

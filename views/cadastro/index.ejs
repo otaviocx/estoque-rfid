@@ -5,37 +5,23 @@
         <table class="table table-hover table-striped table-condensed table-bordered">
             <thead>
                 <tr>
-                    <th class="col-md-2">Produto</th>
-                    <th class="col-md-2">Data de Entrada</th>
-                    <th class="col-md-2">Data de esgotamento</th>
-                    <th class="col-md-2">Data de Vencimento</th>
-                    <th class="col-md-2">Quantidade</th>
-                    <th class="col-md-2">Ações</th>
+                    <th class="col-md-4">TAG</th>
+                    <th class="col-md-4">Produto</th>
+                    <th class="col-md-4">Quantidade</th>
                 </tr>
             </thead>
             <tbody>
                 <% for(var i=0; i<produtos.length; i++) {%>
                     <tr>
-                        <!--<td>
+                        <td>
                             <span class="table-content"><%= produtos[i].tagProduto %></span>
-                        </td>-->
+                        </td>
                         <td>
                             <span class="table-content"><%= produtos[i].nomeProduto %></span>
                         </td>
                         <td>
-                            <span class="table-content"><%= produtos[i].qtdProduto %></span>
+                            <span class="table-content"><%= produtos[i].quantidadeProduto %></span>
                         </td>
-                        <!--<td>
-                            <a href="/entrada?tagProduto=<%= produtos[i].tagProduto %>" class="btn btn-default btn-raised btn-xs">
-                                <i class="material-icons">&#xE145;</i>
-                            </a>
-                            <a href="/saida?tagProduto=<%= produtos[i].tagProduto %>" class="btn btn-default btn-raised btn-xs">
-                                <i class="material-icons">&#xE15B;</i>
-                            </a>
-                            <a href="/excluir?tagProduto=<%= produtos[i].tagProduto %>" class="btn btn-danger btn-raised btn-xs">
-                                <i class="material-icons">&#xE92B;</i>
-                            </a>
-                        </td>-->
                     </tr>
                     <% } %>
             </tbody>
@@ -44,19 +30,26 @@
 
         <hr/>
 
-        <form action="/salvar" method="POST" class="form-group">
+        <form class="form-group">
             <div class="row">
                 <div class="col-md-4">
-                    <input type="text" class="form-control" id="txtTag" placeholder="TAG do Produto" name="tagProduto">
+                    <label for="select111" class="col-md-2 control-label">TAG</label>
+
+                    <div class="col-md-10">
+                        <select id="selectTag" class="form-control">
+                            <% for(var i=0; i<produtos.length; i++) {%>
+                                <option><span class="table-content"><%= produtos[i].tagProduto %></span></option>
+                            <% } %>
+                        </select>
+                    </div>
                 </div>
+
                 <div class="col-md-4">
-                    <input type="text" class="form-control" id="txtNome" placeholder="Nome do Produto" name="nomeProduto">
+                    <input class="form-control" id="txtNomeProduto" type="text" placeholder="Nome do Produto" name="nomeProduto"/>
                 </div>
-                <div class="col-md-2">
-                    <input type="text" class="form-control" id="txtQtd" placeholder="Qtd. em Estoque" name="qtdProduto">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-success">Cadastrar</button>
+
+                <div class="col-md-4">
+                    <a onclick="salvarNome()" class="btn btn-success">Cadastrar</a>
                 </div>
             </div>
         </form>

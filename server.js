@@ -75,10 +75,45 @@ app.get('/cadastro', (req, res) => {
 })
 
 /**
+ * Roda para listagem dos produtos cadastrados no sistema
+ */
+app.get('/vencimentos', (req, res) => {
+    database.collection(collectionDurabilidade).find().toArray((err, result) => {
+        var content = {
+            durabilidades: []
+        }
+
+        if (result) content.durabilidades = result
+        res.render('vencimentos', content)
+    })
+})
+
+/**
  * persiste a durabilidade no banco de dados
  */
-function persistirDurabilidade(durabilidade) {
+function persistirDurabilidade(durabilidade, atualizar) {
+    database.collection(collectionDurabilidade).findOne({ 'tagProduto': durabilidade.tagProduto }, (err, resultDurabilidade) => {
+        if (err) return console.log('Erro de comunicação com banco ' + err)
 
+        if (!resultDurabilidade) {
+
+            database.collection(collectionDurabilidade).save(durabilidade, (err, result) => {
+                if (err) return false
+                else true
+            })
+
+        } else if (atualizar) {
+
+            resultDurabilidade.total = durabilidade.total
+            resultDurabilidade.unidade = durabilidade.unidade
+
+            database.collection(collectionDurabilidade).save(resultDurabilidade, (err, result) => {
+                if (err) return false
+                else true
+            })
+
+        }
+    })
 }
 
 /**
@@ -88,7 +123,7 @@ function persistirDurabilidade(durabilidade) {
 function recalcularDurabilidadeEntrada(produto) {
     // se o produto existir e tiver durabilidade significa que podemos calcular
     // a data que este produto acabará no estoque
-    if (produto && produto.durabilidade) {
+    if (produto && produto.durabilidade && produto.durabilidade != 0) {
         database.collection(collectionDurabilidade).findOne({ 'tagProduto': produto.tagProduto }, (err, durabilidade) => {
             // se conseguir encontrar o documento no banco aumenta sua quantidade e salva
             if (!err) {
@@ -96,7 +131,8 @@ function recalcularDurabilidadeEntrada(produto) {
                     // carrega a durabilidade de um produto e recalcula a durabilidade para todos
                     produto.durabilidade = durabilidade.unidade
                     durabilidade.total = durabilidade.total + durabilidade.unidade
-                    persistirDurabilidade(produto)
+                    persistirDurabilidade(durabilidade, false)
+                    persistirProduto(produto)
                     return durabilidade.unidade
                 } else {
                     console.log('Não consegui encontrar a durabilidade do produto ' + tagProduto)
@@ -107,7 +143,28 @@ function recalcularDurabilidadeEntrada(produto) {
     }
 
     // todo: se não encontrar a durabilidade, persiste uma nova para este produto
+    var durabilidade = {
+        tagProduto: produto.tagProduto,
+        total: Number(0),
+        unidade: Number(0)
+    }
 
+    persistirDurabilidade(durabilidade, false)
+    return durabilidade.unidade
+}
+
+/**
+ * Persiste um novo produto no banco de dados
+ */
+function persistirProduto(produto) {
+    database.collection(collectionProdutos).save(produto, (err, result) => {
+        if (err) {
+            console.log(err)
+            return false
+        } else {
+            return true
+        }
+    })
 }
 
 /**
@@ -133,16 +190,9 @@ app.get('/entrada', (req, res) => {
             novoProduto.tagProduto = tagProduto
             novoProduto.dataEntrada = dataDeEntrada
             novoProduto.dataSaida = null
-            novoProduto.durabilidade = produto ? recalcularDurabilidadeEntrada(tagProduto) : null
-
-            database.collection(collectionProdutos).save(novoProduto, (err, result) => {
-                if (err) {
-                    console.log(err)
-                    res.json({ success: false })
-                } else {
-                    res.json({ success: true })
-                }
-            })
+            novoProduto.durabilidade = produto ? recalcularDurabilidadeEntrada(produto) : recalcularDurabilidadeEntrada(novoProduto)
+            var retorno = persistirProduto(novoProduto)
+            res.json({ success: retorno })
         }
     })
 })

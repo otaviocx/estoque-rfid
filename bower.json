@@ -1,0 +1,20 @@
+{
+  "name": "controle-de-estoque",
+  "description": "Projeto simples para controle de estoque usando RFID para cadastro de produtos (usando TAGS)",
+  "main": "server.js",
+  "authors": [
+    "Rhuan Karlus Silva"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/otaviocx/estoque-rfid",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.1.0"
+  }
+}

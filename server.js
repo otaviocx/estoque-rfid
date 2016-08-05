@@ -5,18 +5,30 @@ const app = express()
 const MongoClient = require('mongodb').MongoClient
 
 // configuração do servidor
-const portaDoServidor = 3000
+const portaDoServidor = 8080
 
 // configuração do banco de dados
-const dbCredenciais = 'admin:mongo.oobj@';
-const dbUrl = dbCredenciais + '127.0.0.1:27017/controle-de-estoque';
+const databaseCredenciais = 'admin:mongo.oobj@';
+const databaseUrl = databaseCredenciais + '127.0.0.1:27017/controle-de-estoque';
 const collectionProdutos = 'produtos'
 const collectionDurabilidade = 'durabilidades'
-var db
+
+// apenas para remoção de problemas de CORS
+const allowCrossDomain = function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', 'example.com');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+    next();
+}
+
+// variável de controle de acesso ao banco
+var database
 
 // configurando o app
 app.use(bodyParser.urlencoded({ extended: true }))
-app.use('/bower_components', express.static(__dirname + '/bower_components'));
+app.use(allowCrossDomain);
+app.use(express.static(__dirname + '/bower_components'));
 app.use(express.static(__dirname + '/public'));
 
 app.set('views', __dirname + '/views');
@@ -33,7 +45,7 @@ app.get('/', (req, res) => {
  * Roda para listagem dos produtos cadastrados no sistema
  */
 app.get('/listagem', (req, res) => {
-    db.collection(collectionProdutos).find().toArray((err, result) => {
+    database.collection(collectionProdutos).find().toArray((err, result) => {
         var content = {
             produtos: []
         }
@@ -47,7 +59,7 @@ app.get('/listagem', (req, res) => {
  * Rota que cadastra uma nova TAG
  */
 app.get('/cadastro', (req, res) => {
-    db.collection(collectionProdutos).find().toArray((err, result) => {
+    database.collection(collectionProdutos).find().toArray((err, result) => {
         var content = {
             produtos: []
         }
@@ -65,7 +77,7 @@ function recalcularDurabilidade(produto) {
     // se o produto existir e tiver durabilidade significa que podemos calcular
     // a data que este produto acabará no estoque
     if (produto && produto.durabilidade) {
-        db.collection(collectionDurabilidade).findOne({ 'tagProduto': tagProduto }, (err, durabilidade) => {
+        database.collection(collectionDurabilidade).findOne({ 'tagProduto': produto.tagProduto }, (err, durabilidade) => {
             // se conseguir encontrar o documento no banco aumenta sua quantidade e salva
             if (!err) {
                 if (durabilidade) {
@@ -88,7 +100,7 @@ app.get('/entrada', (req, res) => {
     var tagProduto = req.query.tagProduto
     var dataEntrada = new Date()
 
-    db.collection(collectionProdutos).findOne({ 'tagProduto': tagProduto }, (err, produto) => {
+    database.collection(collectionProdutos).findOne({ 'tagProduto': tagProduto }, (err, produto) => {
         // se conseguir encontrar o documento no banco aumenta sua quantidade e salva
         if (!err) {
             // criando os dados do novo produto
@@ -99,7 +111,7 @@ app.get('/entrada', (req, res) => {
             novoProduto.dataSaida = null
             novoProduto.durabilidade = produto ? recalcularDurabilidade(tagProduto) : null
 
-            db.collection(collectionProdutos).save(produto, (err, result) => {
+            database.collection(collectionProdutos).save(produto, (err, result) => {
                 if (err) return console.log(err)
                 res.redirect('/cadastro')
             })
@@ -111,11 +123,11 @@ app.get('/entrada', (req, res) => {
  * Rota que registra a saída de um produto
  */
 app.get('/saida', (req, res) => {
-    db.collection(collectionProdutos).findOne({ tagProduto: req.query.tagProduto }, (err, produto) => {
+    database.collection(collectionProdutos).findOne({ tagProduto: req.query.tagProduto }, (err, produto) => {
         // se conseguir encontrar o documento no banco diminui sua quantidade e salva
         if (!err) {
             produto.qtdProduto = Number(produto.qtdProduto) - 1
-            db.collection(collectionProdutos).save(produto, (err, result) => {
+            database.collection(collectionProdutos).save(produto, (err, result) => {
                 if (err) return console.log(err)
                 res.redirect('/cadastro')
             })
@@ -127,7 +139,7 @@ app.get('/saida', (req, res) => {
  * Rota que persiste no banco de dados um novo produto
  */
 app.post('/salvar', (req, res) => {
-    db.collection(collectionProdutos).save(req.body, (err, result) => {
+    database.collection(collectionProdutos).save(req.body, (err, result) => {
         if (err) return console.log(err)
 
         console.log('produto persistido no banco!')
@@ -139,7 +151,7 @@ app.post('/salvar', (req, res) => {
  * Rota que exclui um produto do banco
  */
 app.get('/excluir', (req, res) => {
-    db.collection(collectionProdutos).deleteOne({ tagProduto: req.query.tagProduto }, (err, result) => {
+    database.collection(collectionProdutos).deleteOne({ tagProduto: req.query.tagProduto }, (err, result) => {
         if (err) return console.log(err)
         else {
             console.log('produto deletado!')
@@ -149,9 +161,30 @@ app.get('/excluir', (req, res) => {
 })
 
 /**
+ * Limpa todos os dados do banco de dados
+ * Agiliza a questão do teste e amostra na hora da apresentação
+ */
+app.get('/limparBanco', (req, res) => {
+    var isCollectionProdutosEsvaziada = false
+    var isCollectionDurabilidadeEsvaziada = false
+    
+    database.collection(collectionProdutos).deleteMany({}, (err, result) => {
+        if (err) return console.log(err)
+        else isCollectionProdutosEsvaziada = true
+    })
+    
+    database.collection(collectionDurabilidade).deleteMany({}, (err, result) => {
+        if (err) return console.log(err)
+        else isCollectionDurabilidadeEsvaziada = true
+    })
+    
+    res.json({ success: isCollectionProdutosEsvaziada && isCollectionDurabilidadeEsvaziada });
+})
+
+/**
  * Conexão inicial com o banco e inicialização do servidor.
  */
-MongoClient.connect('mongodb://' + dbUrl, (err, database) => {
+MongoClient.connect('mongodb://' + databaseUrl, (err, db) => {
     if (err) {
         // se não conectar escreve o erro e finaliza
         console.log(err)
@@ -159,7 +192,7 @@ MongoClient.connect('mongodb://' + dbUrl, (err, database) => {
     }
 
     // conexão bem sucedida com o banco
-    db = database
+    database = db
     inicializarServidor()
 })
 

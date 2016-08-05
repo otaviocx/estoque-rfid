@@ -75,6 +75,13 @@ app.get('/cadastro', (req, res) => {
 })
 
 /**
+ * persiste a durabilidade no banco de dados
+ */
+function persistirDurabilidade(durabilidade) {
+
+}
+
+/**
  * recalcula a durabilidade de um produto pela sua tag
  * considerando que uma nova inserção foi realizada
  */
@@ -89,12 +96,18 @@ function recalcularDurabilidadeEntrada(produto) {
                     // carrega a durabilidade de um produto e recalcula a durabilidade para todos
                     produto.durabilidade = durabilidade.unidade
                     durabilidade.total = durabilidade.total + durabilidade.unidade
+                    persistirDurabilidade(produto)
+                    return durabilidade.unidade
                 } else {
                     console.log('Não consegui encontrar a durabilidade do produto ' + tagProduto)
+                    return null
                 }
             }
         })
     }
+
+    // todo: se não encontrar a durabilidade, persiste uma nova para este produto
+
 }
 
 /**
@@ -162,12 +175,20 @@ app.post('/salvarNome', (req, res) => {
         return
     }
 
-    database.collection(collectionProdutos).save(req.body, (err, result) => {
-        if (err) return console.log(err)
+    database.collection(collectionProdutos).update(
+        { tagProduto: produto.tagProduto }, // procurarei por todos os objetos que tiverem essa query
+        { "$set": { "nomeProduto": produto.nomeProduto } }, // vou atualizar apenas o nome dos produtos
+        { "multi": true }, // como quero atualizar mais de um documento
+        (err, result, status) => {
+            if (err || result <= 0) {
+                console.log(err)
+                res.json({ success: false })
+                return
+            }
 
-        console.log('produto persistido no banco!')
-        res.redirect('/cadastro')
-    })
+            console.log('Produtos alterados: ' + result)
+            res.json({ success: true })
+        })
 })
 
 /**

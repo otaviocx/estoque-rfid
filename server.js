@@ -8,8 +8,7 @@ const MongoClient = require('mongodb').MongoClient
 const portaDoServidor = 8080
 
 // configuração do banco de dados
-const databaseCredenciais = 'admin:mongo.oobj@';
-const databaseUrl = databaseCredenciais + '127.0.0.1:27017/controle-de-estoque';
+const databaseUrl = '127.0.0.1:27017/estoque';
 const collectionProdutos = 'produtos'
 const collectionDurabilidade = 'durabilidades'
 // fazer a contagem de quantos produtos devem ser contados para gerar a média

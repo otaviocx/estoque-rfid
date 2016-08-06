@@ -5,9 +5,10 @@
         <table class="table table-hover table-striped table-condensed table-bordered">
             <thead>
                 <tr>
-                    <th class="col-md-4">TAG</th>
-                    <th class="col-md-4">Produto</th>
-                    <th class="col-md-4">Quantidade</th>
+                    <th class="col-md-3">TAG</th>
+                    <th class="col-md-3">Produto</th>
+                    <th class="col-md-3">Data de Entrada</th>
+                    <th class="col-md-3">Data de Saída</th>
                 </tr>
             </thead>
             <tbody>
@@ -20,7 +21,10 @@
                             <span class="table-content"><%= produtos[i].nomeProduto %></span>
                         </td>
                         <td>
-                            <span class="table-content"><%= produtos[i].quantidadeProduto %></span>
+                            <span class="table-content"><%= produtos[i].dataEntrada %></span>
+                        </td>
+                        <td>
+                            <span class="table-content"><%= produtos[i].dataSaida %></span>
                         </td>
                     </tr>
                     <% } %>
@@ -37,15 +41,15 @@
 
                     <div class="col-md-10">
                         <select id="selectTag" class="form-control">
-                            <% for(var i=0; i<produtos.length; i++) {%>
-                                <option><span class="table-content"><%= produtos[i].tagProduto %></span></option>
+                            <% for(var i=0; i<tags.length; i++) {%>
+                                <option><span class="table-content"><%= tags[i] %></span></option>
                             <% } %>
                         </select>
                     </div>
                 </div>
 
                 <div class="col-md-4">
-                    <input class="form-control" id="txtNomeProduto" type="text" placeholder="Nome do Produto" name="nomeProduto"/>
+                    <input class="form-control" id="txtNomeProduto" type="text" placeholder="Nome do Produto" name="nomeProduto" />
                 </div>
 
                 <div class="col-md-4">
